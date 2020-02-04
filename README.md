@@ -31,7 +31,7 @@ sudo apt-get upgrade
   sudo ufw default deny incoming   # Deny any incoming traffic.
   sudo ufw default allow outgoing  # Enable outgoing traffic.
   sudo ufw allow 2200/tcp          # Allow incoming tcp packets on port 2200.
-  sudo ufw allow 80/tcp               # Allow HTTP traffic in.
+  sudo ufw allow 80/tcp            # Allow HTTP traffic in.
   sudo ufw allow 123/udp           # Allow incoming udp packets on port 123.
   sudo ufw deny 22                 # Deny tcp and udp packets on port 53.
   ```
@@ -58,7 +58,7 @@ sudo apt-get upgrade
   - Enter file in which to save the key (I gave the name `grader_key`) in the local directory `~/.ssh`.
   - Two files will be generated (  `~/.ssh/grader_key` and `~/.ssh/grader_key.pub`).
   - Run `cat ~/.ssh/grader_key.pub` and copy the contents of the file.
--On AWS instance:  
+- On AWS instance:  
   Run the following command in your virtual environment:
   ```
   su - grader
@@ -75,13 +75,25 @@ sudo apt-get upgrade
 7. Configure the local timezone to UTC
 - Run `sudo dpkg-reconfigure tzdata` and choose UTC.
 
-8.Install Apache application and wsgi module
+8. Install Apache application and wsgi module
 - Run `sudo apt-get install apache2` to install apache.
 - Run `sudo apt-get install python-setuptools libapache2-mod-wsgi` to install mod-wsgi module
 - Then start the server `sudo service apache2 start`.
 
+9. Install git
+- Run `sudo apt-get install git`.
+- Configure your username and email. `git config --global user.name <username>` and `git config --global user.email <email>`
 
-
+10. Clone the project
+- While logged in as grader:
+```
+mkdir /var/www/catalog/
+cd /var/www/catalog
+touch catalog.wsgi
+sudo git clone https://github.com/islamsalah2020/Item_Catalog
+```
+- Rename application.py to __init__.py  
+```mv application.py  __init__.py```
   
   
   
