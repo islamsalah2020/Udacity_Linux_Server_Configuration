@@ -1,6 +1,6 @@
 # Linux Server Configuration
 
-
+## Project Overview
 This project is for installation of a Linux server and prepare it to host my web applications. And will secure the server from a number of attack vectors, install and configure a database server, and deploy my web applications [Item Catalog](https://github.com/islamsalah2020/Item_Catalog) onto it using Lightsail AWS instance as virtual machine.
 
 ## Configuration Steps:
@@ -14,8 +14,8 @@ This project is for installation of a Linux server and prepare it to host my web
 
 2. SSH into the server 
 - Open terminal, type: `chmod 600 ~/.ssh/My_ssh_key.pem`.
-- To connect to the instance via the terminal: type `ssh -i ~/.ssh/lightsail_key.rsa ubuntu@18.194.150.68`, 
-  where `18.194.150.68` is the public IP address of the instance.
+- To connect to the instance via the terminal: type `ssh -i ~/.ssh/lightsail_key.rsa ubuntu@35.157.123.125`, 
+  where `35.157.123.125` is the Static IP address of the instance.
 
 3. Update and upgrade installed packages.
 ```
@@ -93,8 +93,7 @@ cd /var/www/catalog
 touch catalog.wsgi
 sudo git clone https://github.com/islamsalah2020/Item_Catalog
 ```
-- Rename application.py to __init__.py  
-```mv application.py  __init__.py```
+- Move content of cloned repo to /var/www/catalog.
 
 11. Create virtual environment and install Flask framework
 - Install pip 
@@ -103,53 +102,53 @@ sudo git clone https://github.com/islamsalah2020/Item_Catalog
 - Create a new virtuall environment with name venv, Run `sudo virtualenv venv`.
 - Change permissions to the viertual environment folder `sudo chmod -R 777 venv`.
 - Activate virtuall environment, Run `source venv/bin/activate`.
-- Install Flask Run `pip install Flask`.
-- Install Flask dependencies:
+- Install Flask and other dependencies:
   ```
-  pip install bleach httplib2 request oauth2client psycopg2
-  pip install sqlalchemy
-  sudo apt-get install libpq-dev
+  
+  sudo apt-get install python-pip
+  sudo pip install Flask
+  sudo pip install sqlalchemy psycopg2 sqlalchemy_utils
+  sudo pip install httplib2 oauth2client requests
   ```
 
 12. Configure Apache
 - Create a config file, Run `sudo vi /etc/apache2/sites-available/catalog.conf`.
 - Add the following lines to configure the virtual host:
 ```
-WSGIPythonHome "/usr/local/bin"
-WSGIPythonPath "/home/fenikso/virtualenv/lib/python3.4/site-packages"
-
 <VirtualHost *:80>
-    ServerName 13.59.39.163
+    ServerName 35.157.123.125
     WSGIScriptAlias / /var/www/catalog/catalog.wsgi
-    <Directory /var/www/catalog/Item_Catalog/vagrant/catalog/>
-    	Require all granted
+    DocumentRoot /var/www/catalog
+    <Directory /var/www/catalog/>
+        Require all granted
     </Directory>
-    Alias /static /var/www/catalog/Item_Catalog/vagrant/catalog/static
-    <Directory /var/www/catalog/Item_Catalog/vagrant/catalog/static/>
-  	  Require all granted
+    Alias /static /var/www/catalog/static
+    <Directory /var/www/catalog/static/>
+          Require all granted
     </Directory>
     ErrorLog ${APACHE_LOG_DIR}/error.log
     LogLevel warn
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 ```
-- Enable virtual host, Run `sudo a2ensite catalog`.
-- restart Apache, Run `sudo service apache2 reload`.
+- Disable default site, Run `sudo a2dissite 000-default.conf`
+- Enable virtual host site, Run `sudo a2ensite catalog`.
+- Restart Apache, Run `sudo service apache2 restart`.
 
 13. Set up the Flask application with WSGI
 - Create catalog.wsgi file, Run `sudo vi /var/www/catalog/catalog.wsgi` then add the following lines:
 
 ```
-activate_this = '/var/www/catalog/Item_Catalog/vagrant/catalog/env/bin/activate_this.py'
+activate_this = '/var/www/catalog/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, "/var/www/catalog/Item_Catalog/vagrant/catalog/")
-sys.path.insert(1, "/var/www/catalog/Item_Catalog/vagrant/catalog/")
+sys.path.insert(0, "/var/www/catalog/")
+sys.path.insert(1, "/var/www/catalog/")
 
-from catalog import app as application
+from application import app as application
 application.secret_key = 'secret'
 ```
 - Restart Apache, Run `sudo service apache2 restart`.
@@ -162,10 +161,8 @@ sudo apt-get install postgresql postgresql-contrib
 ```
 - Login to postgresql, Run `sudo su - postgres` and `psql`.
 - Create a new user, Run `CREATE USER catalog WITH PASSWORD 'password';`.
-- Create a DB named 'catalog', Run `ALTER USER catalog CREATEDB;` and `CREATE DATABASE catalog WITH OWNER catalog;`.
+- Create a DB named 'catalog', Run `CREATE DATABASE catalog WITH OWNER catalog;`.
 - Connect to the DB, Run `\c catalog`.
-- Revoke all rights, Run `REVOKE ALL ON SCHEMA public FROM public;`.
-- Change a grant from public to catalog, Run `GRANT ALL ON SCHEMA public TO catalog`.
 - Logout from postgresql prompt and return to the grader user, Run `\q` and `exit` to exit.
 - Replace the engine inside Flask application in database_setup.py in the following line:
   ```
@@ -175,52 +172,15 @@ with :
 ```
 engine = create_engine('postgresql://catalog:password@localhost/catalog')
 ```
-- Set up the DB, Run `python /var/www/catalog/Item_Catalog/vagrant/catalog/database_setup.py`.
+- Set up the DB, Run `python /var/www/catalog/database_setup.py`.
 - Run the following command to insert some data into the database :
-```python /var/www/catalog/Item_Catalog/vagrant/catalog/dummydata.py```
-- Run `sudo service apache2 restart` and check the website.
-
-  
-  
-  sudo vi /var/www/catalog/catalog.wsgi
-import sys
-import logging
-logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, "/var/www/catalog/")
-
-from catalog import app as application
-application.secret_key = 'secret'
-
-sudo mv /var/www/catalog/Item_Catalog/vagrant/catalog/ /var/www/catalog/mycatalogapp
+```python /var/www/catalog/dummydata.py```
+- Run `sudo service apache2 restart` and visit the website using your browser[Item-catalog](http://35.157.123.125) site.
 
 
-sudo vi /etc/apache2/sites-available/catalog.conf 
-<VirtualHost *:80>
-    ServerName 35.157.123.125
-    
-    WSGIScriptAlias / /var/www/catalog/catalog.wsgi
-    <Directory /var/www/catalog/catalog/>
-    	Require all granted
-    </Directory>
-    Alias /static /var/www/catalog/catalog/static
-    <Directory /var/www/catalog/catalog/static/>
-  	  Require all granted
-    </Directory>
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    LogLevel warn
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>
+## References 
+- [WSGI Flask Documentation](https://flask.palletsprojects.com/en/1.1.x/deploying/)
+- [AWS Lightsail](https://lightsail.aws.amazon.com/ls/webapp/home/instances)
+- [Creation of virtual environments](https://docs.python.org/3/library/venv.html)
+- [Install and Use PostgreSQL](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-18-04)
 
-sudo a2ensite catalog
-sudo service apache2 restart
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
