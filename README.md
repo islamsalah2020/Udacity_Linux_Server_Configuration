@@ -182,7 +182,37 @@ engine = create_engine('postgresql://catalog:password@localhost/catalog')
 
   
   
-  
+  sudo vi /var/www/catalog/catalog.wsgi
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, "/var/www/catalog/")
+
+from catalog import app as application
+application.secret_key = 'secret'
+
+sudo mv /var/www/catalog/Item_Catalog/vagrant/catalog/ /var/www/catalog/mycatalogapp
+
+
+sudo vi /etc/apache2/sites-available/catalog.conf 
+<VirtualHost *:80>
+    ServerName 35.157.123.125
+    
+    WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+    <Directory /var/www/catalog/catalog/>
+    	Require all granted
+    </Directory>
+    Alias /static /var/www/catalog/catalog/static
+    <Directory /var/www/catalog/catalog/static/>
+  	  Require all granted
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    LogLevel warn
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+sudo a2ensite catalog
+sudo service apache2 restart
   
   
   
