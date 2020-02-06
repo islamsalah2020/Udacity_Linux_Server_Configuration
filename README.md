@@ -101,13 +101,18 @@ sudo git clone https://github.com/islamsalah2020/Item_Catalog
 ```sudo apt-get install python-pip```
 - Install virtual environment, Run `sudo apt-get install python-virtualenv`. 
 - Create a new virtuall environment with name ### venv, Run `sudo virtualenv venv`.
-- Change permissions to the viertual environment folder sudo chmod -R 777 venv.
+- Change permissions to the viertual environment folder `sudo chmod -R 777 venv`.
 - Activate virtuall environment, Run `source venv/bin/activate`.
 - Install Flask Run `pip install Flask`.
-- Install Flask dependencies `pip install bleach httplib2 request oauth2client sqlalchemy python-psycopg2`.
+- Install Flask dependencies:
+  ```
+  pip install bleach httplib2 request oauth2client python-psycopg2
+  pip install sqlalchemy
+  sudo apt-get install libpq-dev
+  ```
 
 12. Configure Apache
-- Create a config file, Run `sudo nano /etc/apache2/sites-available/catalog.conf`.
+- Create a config file, Run `sudo vi /etc/apache2/sites-available/catalog.conf`.
 - Add the following lines to configure the virtual host:
 ```
 WSGIPythonHome "/usr/local/bin"
@@ -115,16 +120,13 @@ WSGIPythonPath "/home/fenikso/virtualenv/lib/python3.4/site-packages"
 
 <VirtualHost *:80>
     ServerName 13.59.39.163
-  ServerAlias ec2-13-59-39-163.us-west-2.compute.amazonaws.com
     WSGIScriptAlias / /var/www/catalog/catalog.wsgi
-    <Directory /var/www/catalog/catalog/>
-    	Order allow,deny
-  	  Allow from all
+    <Directory /var/www/catalog/Item_Catalog/vagrant/catalog/>
+    	Require all granted
     </Directory>
-    Alias /static /var/www/catalog/catalog/static
-    <Directory /var/www/catalog/catalog/static/>
-  	  Order allow,deny
-  	  Allow from all
+    Alias /static /var/www/catalog/Item_Catalog/vagrant/catalog/static
+    <Directory /var/www/catalog/Item_Catalog/vagrant/catalog/static/>
+  	  Require all granted
     </Directory>
     ErrorLog ${APACHE_LOG_DIR}/error.log
     LogLevel warn
@@ -132,40 +134,42 @@ WSGIPythonPath "/home/fenikso/virtualenv/lib/python3.4/site-packages"
 </VirtualHost>
 ```
 - Enable virtual host, Run `sudo a2ensite catalog`.
-- restart Apache, Run `sudo service apache2 restart`.
+- restart Apache, Run `sudo service apache2 reload`.
 
 13. Set up the Flask application with WSGI
-- Create catalog.wsgi file, Run `touch /var/www/catalog/catalog.wsgi` then add the following lines:
-```
-activate_this = '/var/www/catalog/catalog/venv/bin/activate_this.py'
-with open(activate_this) as file_:
-    exec(file_.read(), dict(__file__=activate_this))
+- Create catalog.wsgi file, Run `sudo vi /var/www/catalog/catalog.wsgi` then add the following lines:
 
-#!/usr/bin/python
+```
+activate_this = '/var/www/catalog/Item_Catalog/vagrant/catalog/env/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, "/var/www/catalog/catalog/")
-sys.path.insert(1, "/var/www/catalog/")
+sys.path.insert(0, "/var/www/catalog/Item_Catalog/vagrant/catalog/")
+sys.path.insert(1, "/var/www/catalog/Item_Catalog/vagrant/catalog/")
 
 from catalog import app as application
-application.secret_key = "..."
+application.secret_key = 'secret'
 ```
 - Restart Apache, Run `sudo service apache2 restart`.
 
 14. Install and configure PostgreSQL
-- Install Postgresql, Run `sudo apt-get install PostgreSQL`.
-- Login to postgresql, Run ` sudo su - postgres and psql`.
-- Create a new user, Run `CREATE USER catalog WITH PASSWORD 'password'`.
-- Create a DB named 'catalog', Run `ALTER USER catalog CREATEDB` and `CREATE DATABASE catalog WITH OWNER catalog`.
+- Install Postgresql, Run `sudo apt-get install postgresql postgresql-contrib`.
+- Login to postgresql, Run `sudo su - postgres and psql`.
+- Create a new user, Run `CREATE USER catalog WITH PASSWORD 'password';`.
+- Create a DB named 'catalog', Run `ALTER USER catalog CREATEDB;` and `CREATE DATABASE catalog WITH OWNER catalog;`.
 - Connect to the DB, Run `\c catalog`.
-- Revoke all rights, Run `REVOKE ALL ON SCHEMA public FROM public`.
+- Revoke all rights, Run `REVOKE ALL ON SCHEMA public FROM public;`.
 - Change a grant from public to catalog, Run `GRANT ALL ON SCHEMA public TO catalog`.
-- Logout from postgresql prompt and return to the grader user, Run `\q` and `exit`.
+- Logout from postgresql prompt and return to the grader user, Run `\q` and `exit` to exit.
 - Replace the engine inside Flask application in database_setup.py in the following line:
-```engine = create_engine('postgresql://catalog:password@localhost/catalog')```
+  ```engine = create_engine('sqlite:///itemcatalog.db')```
 with :
-```Set up the DB with python /var/www/catalog/item-catalog-udacity/database_setup.py```
+```engine = create_engine('postgresql://catalog:password@localhost/catalog')```
+- Set up the DB, Run `python /var/www/catalog/Item_Catalog/vagrant/catalog/database_setup.py`.
+- Run the following command to insert some data into the database :
+```python /var/www/catalog/Item_Catalog/vagrant/catalog/dummydata.py```
 - Run `sudo service apache2 restart` and check the website.
 
   
