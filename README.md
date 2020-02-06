@@ -100,13 +100,13 @@ sudo git clone https://github.com/islamsalah2020/Item_Catalog
 - Install pip 
 ```sudo apt-get install python-pip```
 - Install virtual environment, Run `sudo apt-get install python-virtualenv`. 
-- Create a new virtuall environment with name ### venv, Run `sudo virtualenv venv`.
+- Create a new virtuall environment with name venv, Run `sudo virtualenv venv`.
 - Change permissions to the viertual environment folder `sudo chmod -R 777 venv`.
 - Activate virtuall environment, Run `source venv/bin/activate`.
 - Install Flask Run `pip install Flask`.
 - Install Flask dependencies:
   ```
-  pip install bleach httplib2 request oauth2client python-psycopg2
+  pip install bleach httplib2 request oauth2client psycopg2
   pip install sqlalchemy
   sudo apt-get install libpq-dev
   ```
@@ -155,8 +155,12 @@ application.secret_key = 'secret'
 - Restart Apache, Run `sudo service apache2 restart`.
 
 14. Install and configure PostgreSQL
-- Install Postgresql, Run `sudo apt-get install postgresql postgresql-contrib`.
-- Login to postgresql, Run `sudo su - postgres and psql`.
+- Install Postgresql, Run :
+```
+sudo apt-get install libpq-dev python-dev
+sudo apt-get install postgresql postgresql-contrib
+```
+- Login to postgresql, Run `sudo su - postgres` and `psql`.
 - Create a new user, Run `CREATE USER catalog WITH PASSWORD 'password';`.
 - Create a DB named 'catalog', Run `ALTER USER catalog CREATEDB;` and `CREATE DATABASE catalog WITH OWNER catalog;`.
 - Connect to the DB, Run `\c catalog`.
@@ -164,9 +168,13 @@ application.secret_key = 'secret'
 - Change a grant from public to catalog, Run `GRANT ALL ON SCHEMA public TO catalog`.
 - Logout from postgresql prompt and return to the grader user, Run `\q` and `exit` to exit.
 - Replace the engine inside Flask application in database_setup.py in the following line:
-  ```engine = create_engine('sqlite:///itemcatalog.db')```
+  ```
+  engine = create_engine('sqlite:///itemcatalog.db')
+  ```
 with :
-```engine = create_engine('postgresql://catalog:password@localhost/catalog')```
+```
+engine = create_engine('postgresql://catalog:password@localhost/catalog')
+```
 - Set up the DB, Run `python /var/www/catalog/Item_Catalog/vagrant/catalog/database_setup.py`.
 - Run the following command to insert some data into the database :
 ```python /var/www/catalog/Item_Catalog/vagrant/catalog/dummydata.py```
