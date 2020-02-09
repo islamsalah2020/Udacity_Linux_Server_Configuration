@@ -24,7 +24,7 @@ sudo apt-get upgrade
 ```
 
 4. Configure SSH port and the Uncomplicated Firewall (UFW)
-- Edit `/etc/ssh/sshd_config` file by `sudo nano /etc/ssh/sshd_config` Change port from 22 to 2200.
+- Edit `/etc/ssh/sshd_config` file by `sudo vi /etc/ssh/sshd_config` Change port from 22 to 2200.
 - for UFW :
 ```
   sudo ufw status                  # The UFW should be inactive.
@@ -32,7 +32,6 @@ sudo apt-get upgrade
   sudo ufw default allow outgoing  # Enable outgoing traffic.
   sudo ufw allow 2200/tcp          # Allow incoming tcp packets on port 2200.
   sudo ufw allow 80/tcp            # Allow HTTP traffic in.
-  sudo ufw allow 123/udp           # Allow incoming udp packets on port 123.
   sudo ufw deny 22                 # Deny tcp and udp packets on port 53.
   ```
 - Restart SSH service with `sudo service ssh restart`.
@@ -42,7 +41,6 @@ sudo apt-get upgrade
   ```
    SSH	TCP	22	
    HTTP	TCP	80	
-   Custom	UDP	123	
    Custom	TCP	2200
    ```
    
@@ -118,7 +116,6 @@ sudo git clone https://github.com/islamsalah2020/Item_Catalog
 <VirtualHost *:80>
     ServerName 35.157.123.125
     WSGIScriptAlias / /var/www/catalog/catalog.wsgi
-    DocumentRoot /var/www/catalog
     <Directory /var/www/catalog/>
         Require all granted
     </Directory>
@@ -139,17 +136,17 @@ sudo git clone https://github.com/islamsalah2020/Item_Catalog
 - Create catalog.wsgi file, Run `sudo vi /var/www/catalog/catalog.wsgi` then add the following lines:
 
 ```
+import sys
+import logging
+
 activate_this = '/var/www/catalog/venv/bin/activate_this.py'
 execfile(activate_this, dict(__file__=activate_this))
 
-import sys
-import logging
 logging.basicConfig(stream=sys.stderr)
 sys.path.insert(0, "/var/www/catalog/")
-sys.path.insert(1, "/var/www/catalog/")
+
 
 from application import app as application
-application.secret_key = 'secret'
 ```
 - Restart Apache, Run `sudo service apache2 restart`.
 
