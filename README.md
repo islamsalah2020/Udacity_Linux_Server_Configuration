@@ -162,17 +162,18 @@ sudo apt-get install postgresql postgresql-contrib
 - Connect to the DB, Run `\c catalog`.
 - Logout from postgresql prompt and return to the grader user, Run `\q` and `exit` to exit.
 - Replace the engine inside Flask application in database_setup.py in the following line:
+from SQLite
   ```
   engine = create_engine('sqlite:///itemcatalog.db')
   ```
-with :
+to PostgreSQL with :
 ```
 engine = create_engine('postgresql://catalog:password@localhost/catalog')
 ```
 - Set up the DB, Run `python /var/www/catalog/database_setup.py`.
 - Run the following command to insert some data into the database :
 ```python /var/www/catalog/dummydata.py```
-- Run `sudo service apache2 restart` and visit the website using your browser[Item-catalog](http://35.157.123.125) site.
+- Run `sudo service apache2 restart` and visit the website using your browser [Item-catalog](http://35.157.123.125)  site.
 
 
 ## References 
